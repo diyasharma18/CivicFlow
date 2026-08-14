@@ -26,6 +26,8 @@ app.get("/api/status", (req, res) => {
     });
 });
 
+/* CREATE COMPLAINT */
+
 app.post("/api/complaints", async (req, res) => {
     try {
         const {
@@ -63,6 +65,34 @@ app.post("/api/complaints", async (req, res) => {
 
         res.status(500).json({
             message: "Failed to submit complaint."
+        });
+    }
+});
+
+/* GET COMPLAINT */
+
+app.get("/api/complaints/:complaintId", async (req, res) => {
+    try {
+        const complaint = await Complaint.findOne({
+            complaintId: req.params.complaintId
+        });
+
+        if (!complaint) {
+            return res.status(404).json({
+                message: "Complaint not found."
+            });
+        }
+
+        res.json(complaint);
+
+    } catch (error) {
+        console.error(
+            "Complaint fetch failed:",
+            error.message
+        );
+
+        res.status(500).json({
+            message: "Failed to fetch complaint."
         });
     }
 });

@@ -30,6 +30,13 @@ const complaintSchema = new mongoose.Schema(
 
         status: {
             type: String,
+            enum: [
+                "Submitted",
+                "Verified",
+                "Checking",
+                "Working",
+                "Resolved"
+            ],
             default: "Submitted"
         }
     },

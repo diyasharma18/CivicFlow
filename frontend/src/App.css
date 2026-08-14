@@ -514,3 +514,206 @@ h1 span {
         padding: 25px 20px;
     }
 }
+
+/* TRACK COMPLAINT MODAL */
+
+.track-modal {
+    position: relative;
+    width: 100%;
+    max-width: 750px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    padding: 40px;
+
+    background: white;
+    border-radius: 18px;
+
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+}
+
+.track-modal h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.modal-description {
+    margin-top: 8px;
+    color: #64748b;
+}
+
+/* TRACK INPUT */
+
+.track-input-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.track-input-container input {
+    flex: 1;
+
+    padding: 14px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+
+    font-size: 15px;
+}
+
+.track-input-container input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+/* TRACK RESULT */
+
+.track-result {
+    margin-top: 30px;
+    padding: 25px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+}
+
+.track-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.track-result-header h3 {
+    margin: 0;
+    font-size: 21px;
+}
+
+.track-result-header strong {
+    color: #2563eb;
+    font-size: 18px;
+}
+
+.complaint-description {
+    margin-top: 20px;
+    color: #475569;
+    line-height: 1.6;
+}
+
+.complaint-location {
+    margin-top: 10px;
+    color: #64748b;
+}
+
+/* STATUS TIMELINE */
+
+.status-timeline {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    margin-top: 35px;
+}
+
+.status-step {
+    position: relative;
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    min-width: 0;
+}
+
+.status-circle {
+    width: 30px;
+    height: 30px;
+
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: white;
+
+    border: 3px solid #cbd5e1;
+
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    position: relative;
+    z-index: 2;
+}
+
+.status-circle.completed {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.status-label {
+    margin-top: 10px;
+
+    font-size: 11px;
+    color: #94a3b8;
+
+    text-align: center;
+    white-space: nowrap;
+}
+
+.completed-label {
+    color: #16a34a;
+    font-weight: 700;
+}
+
+.status-line {
+    position: absolute;
+
+    top: 14px;
+    left: 50%;
+
+    width: 100%;
+    height: 3px;
+
+    background: #cbd5e1;
+
+    z-index: 1;
+}
+
+.completed-line {
+    background: #16a34a;
+}
+
+/* MOBILE TRACKING */
+
+@media (max-width: 600px) {
+
+    .track-modal {
+        padding: 25px 18px;
+    }
+
+    .track-input-container {
+        flex-direction: column;
+    }
+
+    .track-input-container .primary-btn {
+        width: 100%;
+    }
+
+    .track-result {
+        padding: 18px;
+    }
+
+    .status-label {
+        font-size: 9px;
+    }
+
+    .status-circle {
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
+    }
+
+}

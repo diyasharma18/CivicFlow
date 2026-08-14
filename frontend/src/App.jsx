@@ -2,17 +2,69 @@ import { useState } from "react";
 import "./App.css";
 import ReportIssue from "./components/ReportIssue";
 
+const statuses = [
+    "Submitted",
+    "Verified",
+    "Checking",
+    "Working",
+    "Resolved"
+];
+
 function App() {
     const [showReportForm, setShowReportForm] = useState(false);
     const [showQueue, setShowQueue] = useState(false);
 
+    const [complaintId, setComplaintId] = useState("");
+    const [complaint, setComplaint] = useState(null);
+    const [trackError, setTrackError] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const getStatusIndex = (status) => {
+        return statuses.indexOf(status);
+    };
+
+    const handleTrackComplaint = async () => {
+        if (!complaintId.trim()) {
+            setTrackError("Please enter a complaint ID.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setTrackError("");
+            setComplaint(null);
+
+            const response = await fetch(
+                `http://localhost:5000/api/complaints/${complaintId.trim()}`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setTrackError(data.message || "Complaint not found.");
+                return;
+            }
+
+            setComplaint(data);
+
+        } catch (error) {
+            setTrackError(
+                "Unable to connect to CivicFlow server."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="app">
 
-            {/* Navigation */}
+            {/* NAVBAR */}
+
             <nav className="navbar">
 
                 <div className="logo">
+
                     <img
                         src="/logo.png"
                         alt="CivicFlow Logo"
@@ -20,6 +72,7 @@ function App() {
                     />
 
                     <span>CivicFlow</span>
+
                 </div>
 
                 <div className="nav-actions">
@@ -42,7 +95,9 @@ function App() {
 
             </nav>
 
-            {/* Hero Section */}
+
+            {/* HERO */}
+
             <main className="hero-section">
 
                 <div className="hero-content">
@@ -89,56 +144,127 @@ function App() {
 
                 </div>
 
-                {/* Complaint Status Card */}
+
+                {/* COMPLAINT CARD */}
+
                 <div className="queue-card">
 
                     <div className="card-header">
 
                         <div>
+
                             <p className="small-label">
                                 COMPLAINT STATUS
                             </p>
 
                             <h2>
-                                Streetlight Not Working
+                                {complaint
+                                    ? complaint.issueType
+                                    : "Track your complaint"}
                             </h2>
+
                         </div>
 
-                        <span className="live-badge">
-                            ● ACTIVE
-                        </span>
+                        {complaint && (
+                            <span className="live-badge">
+                                ● {complaint.status.toUpperCase()}
+                            </span>
+                        )}
 
                     </div>
 
-                    <div className="queue-number">
 
-                        <span>
-                            Complaint ID
-                        </span>
+                    {/* COMPLAINT ID */}
 
-                        <strong>
-                            #CF1024
-                        </strong>
+                    {complaint && (
 
-                    </div>
+                        <div className="queue-number">
 
-                    <div className="progress-container">
-                        <div className="progress-bar"></div>
-                    </div>
+                            <span>
+                                Complaint ID
+                            </span>
 
-                    <div className="queue-info">
+                            <strong>
+                                #{complaint.complaintId}
+                            </strong>
 
-                        <div>
-                            <span>Status</span>
-                            <strong>In Progress</strong>
                         </div>
 
-                        <div>
-                            <span>Reported</span>
-                            <strong>Today</strong>
+                    )}
+
+
+                    {/* PROGRESS TIMELINE */}
+
+                    {complaint && (
+
+                        <div className="status-timeline">
+
+                            {statuses.map((status, index) => {
+
+                                const currentIndex =
+                                    getStatusIndex(complaint.status);
+
+                                const completed =
+                                    index <= currentIndex;
+
+                                return (
+                                    <div
+                                        className="status-step"
+                                        key={status}
+                                    >
+
+                                        <div
+                                            className={`status-circle ${
+                                                completed
+                                                    ? "completed"
+                                                    : ""
+                                            }`}
+                                        >
+                                            {completed ? "✓" : ""}
+                                        </div>
+
+                                        <span
+                                            className={
+                                                completed
+                                                    ? "status-label completed-label"
+                                                    : "status-label"
+                                            }
+                                        >
+                                            {status}
+                                        </span>
+
+                                        {index < statuses.length - 1 && (
+                                            <div
+                                                className={`status-line ${
+                                                    index < currentIndex
+                                                        ? "completed-line"
+                                                        : ""
+                                                }`}
+                                            />
+                                        )}
+
+                                    </div>
+                                );
+                            })}
+
                         </div>
 
-                    </div>
+                    )}
+
+
+                    {/* DEFAULT CARD */}
+
+                    {!complaint && (
+
+                        <p className="track-description">
+                            Enter your complaint ID to see the
+                            current progress of your complaint.
+                        </p>
+
+                    )}
+
+
+                    {/* TRACK BUTTON */}
 
                     <button
                         type="button"
@@ -148,18 +274,13 @@ function App() {
                         Track Complaint
                     </button>
 
-                    {showQueue && (
-                        <p className="queue-status">
-                            Your complaint has been assigned
-                            and is currently being reviewed.
-                        </p>
-                    )}
-
                 </div>
 
             </main>
 
-            {/* Features */}
+
+            {/* FEATURES */}
+
             <section className="features">
 
                 <div className="feature">
@@ -180,6 +301,7 @@ function App() {
 
                 </div>
 
+
                 <div className="feature">
 
                     <div className="feature-icon">
@@ -197,6 +319,7 @@ function App() {
                     </p>
 
                 </div>
+
 
                 <div className="feature">
 
@@ -218,8 +341,11 @@ function App() {
 
             </section>
 
-            {/* Report Issue Modal */}
+
+            {/* REPORT ISSUE MODAL */}
+
             {showReportForm && (
+
                 <div
                     className="report-overlay"
                     onClick={() => setShowReportForm(false)}
@@ -243,6 +369,176 @@ function App() {
                     </div>
 
                 </div>
+
+            )}
+
+
+            {/* TRACK COMPLAINT MODAL */}
+
+            {showQueue && (
+
+                <div
+                    className="report-overlay"
+                    onClick={() => setShowQueue(false)}
+                >
+
+                    <div
+                        className="track-modal"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+
+                        <button
+                            type="button"
+                            className="close-btn"
+                            onClick={() => setShowQueue(false)}
+                        >
+                            ×
+                        </button>
+
+                        <h2>
+                            Track Your Complaint
+                        </h2>
+
+                        <p className="modal-description">
+                            Enter your complaint ID to check
+                            the current status.
+                        </p>
+
+                        <div className="track-input-container">
+
+                            <input
+                                type="text"
+                                placeholder="Example: CF8708"
+                                value={complaintId}
+                                onChange={(e) =>
+                                    setComplaintId(
+                                        e.target.value.toUpperCase()
+                                    )
+                                }
+                            />
+
+                            <button
+                                type="button"
+                                className="primary-btn"
+                                onClick={handleTrackComplaint}
+                            >
+                                {loading
+                                    ? "Checking..."
+                                    : "Track"}
+                            </button>
+
+                        </div>
+
+                        {trackError && (
+                            <p className="form-error">
+                                {trackError}
+                            </p>
+                        )}
+
+                        {complaint && (
+
+                            <div className="track-result">
+
+                                <div className="track-result-header">
+
+                                    <div>
+
+                                        <p className="small-label">
+                                            COMPLAINT
+                                        </p>
+
+                                        <h3>
+                                            {complaint.issueType}
+                                        </h3>
+
+                                    </div>
+
+                                    <strong>
+                                        #{complaint.complaintId}
+                                    </strong>
+
+                                </div>
+
+
+                                <p className="complaint-description">
+                                    {complaint.description}
+                                </p>
+
+
+                                <p className="complaint-location">
+                                    📍 {complaint.location}
+                                </p>
+
+
+                                {/* TIMELINE */}
+
+                                <div className="status-timeline">
+
+                                    {statuses.map((status, index) => {
+
+                                        const currentIndex =
+                                            getStatusIndex(
+                                                complaint.status
+                                            );
+
+                                        const completed =
+                                            index <= currentIndex;
+
+                                        return (
+                                            <div
+                                                className="status-step"
+                                                key={status}
+                                            >
+
+                                                <div
+                                                    className={`status-circle ${
+                                                        completed
+                                                            ? "completed"
+                                                            : ""
+                                                    }`}
+                                                >
+                                                    {completed
+                                                        ? "✓"
+                                                        : ""}
+                                                </div>
+
+                                                <span
+                                                    className={
+                                                        completed
+                                                            ? "status-label completed-label"
+                                                            : "status-label"
+                                                    }
+                                                >
+                                                    {status}
+                                                </span>
+
+                                                {index <
+                                                    statuses.length - 1 && (
+                                                    <div
+                                                        className={`status-line ${
+                                                            index <
+                                                            currentIndex
+                                                                ? "completed-line"
+                                                                : ""
+                                                        }`}
+                                                    />
+                                                )}
+
+                                            </div>
+                                        );
+
+                                    })}
+
+                                </div>
+
+                            </div>
+
+                        )}
+
+                    </div>
+
+                </div>
+
             )}
 
         </div>
