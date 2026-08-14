@@ -24,11 +24,17 @@ function App() {
 
                 <div className="nav-actions">
 
-                    <button className="login-btn">
+                    <button
+                        type="button"
+                        className="login-btn"
+                    >
                         Login
                     </button>
 
-                    <button className="signup-btn">
+                    <button
+                        type="button"
+                        className="signup-btn"
+                    >
                         Get Started
                     </button>
 
@@ -214,9 +220,15 @@ function App() {
 
             {/* Report Issue Modal */}
             {showReportForm && (
-                <div className="report-overlay">
+                <div
+                    className="report-overlay"
+                    onClick={() => setShowReportForm(false)}
+                >
 
-                    <div className="report-modal">
+                    <div
+                        className="report-modal"
+                        onClick={(e) => e.stopPropagation()}
+                    >
 
                         <button
                             type="button"

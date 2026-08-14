@@ -133,22 +133,15 @@ h1 span {
     border: 1px solid #cbd5e1;
 }
 
+.primary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .trust-text {
     margin-top: 25px;
     color: #94a3b8;
     font-size: 13px;
-}
-
-/* MESSAGE */
-
-.queue-message {
-    margin-top: 18px;
-    padding: 12px 16px;
-    background: #dbeafe;
-    color: #1d4ed8;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
 }
 
 /* COMPLAINT CARD */
@@ -256,6 +249,15 @@ h1 span {
     cursor: pointer;
 }
 
+.queue-status {
+    margin-top: 15px;
+    padding: 12px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
 /* FEATURES */
 
 .features {
@@ -289,6 +291,168 @@ h1 span {
     color: #64748b;
     font-size: 14px;
     line-height: 1.6;
+}
+
+/* REPORT ISSUE MODAL */
+
+.report-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(15, 23, 42, 0.55);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.report-modal {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: white;
+    border-radius: 18px;
+
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 18px;
+
+    width: 35px;
+    height: 35px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #f1f5f9;
+    color: #334155;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    z-index: 10;
+}
+
+.close-btn:hover {
+    background: #e2e8f0;
+}
+
+/* REPORT FORM */
+
+.report-form {
+    width: 100%;
+    padding: 35px;
+
+    background: white;
+    border-radius: 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.report-form h2 {
+    margin: 0 40px 15px 0;
+}
+
+.report-form label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.report-form input,
+.report-form select,
+.report-form textarea {
+    width: 100%;
+    padding: 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-family: inherit;
+
+    background: white;
+}
+
+.report-form input:focus,
+.report-form select:focus,
+.report-form textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.report-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.report-form .primary-btn {
+    margin-top: 10px;
+}
+
+.success-message {
+    margin-top: 10px;
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #dcfce7;
+    color: #166534;
+
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.form-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin: 6px 0 10px;
+    font-weight: 500;
+}
+
+.location-input {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.location-input input {
+    flex: 1;
+}
+
+.location-btn {
+    width: 42px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #f1f5f9;
+    color: #334155;
+
+    cursor: pointer;
+    font-size: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-btn:hover {
+    background: #e2e8f0;
 }
 
 /* MOBILE */
@@ -335,93 +499,18 @@ h1 span {
     .secondary-btn {
         width: 100%;
     }
-}
 
-.report-form {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 30px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    .report-overlay {
+        padding: 10px;
+        align-items: flex-start;
+    }
 
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+    .report-modal {
+        margin-top: 20px;
+        max-height: 95vh;
+    }
 
-.report-form h2 {
-    margin-bottom: 15px;
-}
-
-.report-form label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #334155;
-}
-
-.report-form input,
-.report-form select,
-.report-form textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    font-size: 14px;
-    font-family: inherit;
-}
-
-.report-form textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.report-form .primary-btn {
-    margin-top: 10px;
-}
-
-.success-message {
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 8px;
-    background: #dcfce7;
-    color: #166534;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-}
-
-.form-error {
-    color: #dc2626;
-    font-size: 13px;
-    margin: 6px 0 10px;
-    font-weight: 500;
-}
-
-.location-input {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-}
-
-.location-input input {
-    flex: 1;
-}
-
-.location-btn {
-    width: 42px;
-    border: none;
-    border-radius: 8px;
-    background: #f1f5f9;
-    color: #334155;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.location-btn:hover {
-    background: #e2e8f0;
+    .report-form {
+        padding: 25px 20px;
+    }
 }

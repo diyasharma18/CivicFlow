@@ -10,25 +10,57 @@ function ReportIssue() {
     const [photo, setPhoto] = useState(null);
 
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = () => {
-
+    const handleSubmit = async () => {
         if (!issueType || !description.trim() || !location.trim()) {
             setError("Please fill in all required fields.");
             return;
         }
 
         setError("");
+        setLoading(true);
 
-        const newComplaintId =
-            "CF" + Math.floor(1000 + Math.random() * 9000);
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/complaints",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        issueType,
+                        description,
+                        location
+                    })
+                }
+            );
 
-        setComplaintId(newComplaintId);
-        setSubmitted(true);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Failed to submit complaint."
+                );
+            }
+
+            setComplaintId(data.complaintId);
+            setSubmitted(true);
+
+        } catch (error) {
+            console.error("Complaint submission error:", error);
+
+            setError(
+                "Unable to submit complaint. Please try again."
+            );
+
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleLocation = () => {
-
         if (!navigator.geolocation) {
             setError(
                 "Location access is not supported by your browser."
@@ -38,7 +70,6 @@ function ReportIssue() {
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-
                 const latitude =
                     position.coords.latitude.toFixed(6);
 
@@ -163,8 +194,11 @@ function ReportIssue() {
                 type="button"
                 className="primary-btn"
                 onClick={handleSubmit}
+                disabled={loading}
             >
-                Submit Complaint
+                {loading
+                    ? "Submitting..."
+                    : "Submit Complaint"}
             </button>
 
             {/* Success */}
