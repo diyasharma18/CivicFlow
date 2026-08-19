@@ -1,65 +1,100 @@
 import { useState } from "react";
 import "./App.css";
-import ReportIssue from "./components/ReportIssue";
 
-const statuses = [
-    "Submitted",
-    "Verified",
-    "Checking",
-    "Working",
-    "Resolved"
-];
+import ReportIssue from "./components/ReportIssue";
+import AdminLogin from "./components/AdminLogin";
+import AdminDashboard from "./components/AdminDashboard";
+import Register from "./components/Register";
+import CitizenLogin from "./components/CitizenLogin";
+import TrackComplaint from "./components/TrackComplaint";
 
 function App() {
+    const [user, setUser] = useState(() => {
+        const savedUser = localStorage.getItem("user");
+
+        return savedUser
+            ? JSON.parse(savedUser)
+            : null;
+    });
+
+    const [showCitizenLogin, setShowCitizenLogin] = useState(false);
+    const [showAdminLogin, setShowAdminLogin] = useState(false);
+    const [showRegister, setShowRegister] = useState(false);
+
     const [showReportForm, setShowReportForm] = useState(false);
-    const [showQueue, setShowQueue] = useState(false);
+    const [showTrackComplaint, setShowTrackComplaint] = useState(false);
 
-    const [complaintId, setComplaintId] = useState("");
-    const [complaint, setComplaint] = useState(null);
-    const [trackError, setTrackError] = useState("");
-    const [loading, setLoading] = useState(false);
+    /* =========================
+       CITIZEN LOGIN
+    ========================= */
 
-    const getStatusIndex = (status) => {
-        return statuses.indexOf(status);
+    const handleCitizenLogin = (userData) => {
+        setUser(userData);
+        setShowCitizenLogin(false);
     };
 
-    const handleTrackComplaint = async () => {
-        if (!complaintId.trim()) {
-            setTrackError("Please enter a complaint ID.");
-            return;
+    /* =========================
+       ADMIN LOGIN
+    ========================= */
+
+    const handleAdminLogin = () => {
+        const savedUser = localStorage.getItem("user");
+
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
         }
 
-        try {
-            setLoading(true);
-            setTrackError("");
-            setComplaint(null);
-
-            const response = await fetch(
-                `http://localhost:5000/api/complaints/${complaintId.trim()}`
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setTrackError(data.message || "Complaint not found.");
-                return;
-            }
-
-            setComplaint(data);
-
-        } catch (error) {
-            setTrackError(
-                "Unable to connect to CivicFlow server."
-            );
-        } finally {
-            setLoading(false);
-        }
+        setShowAdminLogin(false);
     };
+
+    /* =========================
+       LOGOUT
+    ========================= */
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        setUser(null);
+
+        setShowReportForm(false);
+        setShowTrackComplaint(false);
+        setShowCitizenLogin(false);
+        setShowRegister(false);
+        setShowAdminLogin(false);
+    };
+
+    /* =========================
+       ADMIN DASHBOARD
+    ========================= */
+
+    if (user && user.role === "admin") {
+        return (
+            <div className="app">
+
+                <AdminDashboard />
+
+                <button
+                    className="logout-btn"
+                    onClick={handleLogout}
+                >
+                    Logout
+                </button>
+
+            </div>
+        );
+    }
+
+    /* =========================
+       CITIZEN HOMEPAGE
+    ========================= */
 
     return (
         <div className="app">
 
-            {/* NAVBAR */}
+            {/* =========================
+               NAVBAR
+            ========================= */}
 
             <nav className="navbar">
 
@@ -77,26 +112,72 @@ function App() {
 
                 <div className="nav-actions">
 
-                    <button
-                        type="button"
-                        className="login-btn"
-                    >
-                        Login
-                    </button>
+                    {user && user.role === "citizen" ? (
 
-                    <button
-                        type="button"
-                        className="signup-btn"
-                    >
-                        Get Started
-                    </button>
+                        <>
+                            <span
+                                style={{
+                                    color: "#334155",
+                                    fontSize: "14px",
+                                    fontWeight: "600",
+                                }}
+                            >
+                                Hi, {user.name}
+                            </span>
+
+                            <button
+                                className="login-btn"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </button>
+                        </>
+
+                    ) : (
+
+                        <>
+                           <button
+    className="login-btn"
+    onClick={() => {
+        setShowRegister(false);
+        setShowCitizenLogin(true);
+    }}
+>
+    Login
+</button>
+
+<button
+    className="signup-btn"
+    onClick={() => {
+        setShowCitizenLogin(false);
+        setShowRegister(true);
+    }}
+>
+    Get Started
+</button>
+
+<button
+    className="login-btn"
+    onClick={() => {
+        setShowCitizenLogin(false);
+        setShowRegister(false);
+        setShowAdminLogin(true);
+    }}
+>
+    Admin
+</button>
+                        </>
+
+                    )}
 
                 </div>
 
             </nav>
 
 
-            {/* HERO */}
+            {/* =========================
+               HERO
+            ========================= */}
 
             <main className="hero-section">
 
@@ -118,25 +199,58 @@ function App() {
                         until the problem is resolved.
                     </p>
 
+
+                    {/* =========================
+                       HERO BUTTONS
+                    ========================= */}
+
                     <div className="hero-buttons">
 
+                        {/* REPORT ISSUE */}
+
                         <button
-                            type="button"
                             className="primary-btn"
-                            onClick={() => setShowReportForm(true)}
+                            onClick={() => {
+
+                                if (user) {
+
+                                    setShowReportForm(true);
+
+                                } else {
+
+                                    setShowCitizenLogin(true);
+
+                                }
+
+                            }}
                         >
                             Report an Issue →
                         </button>
 
+
+                        {/* TRACK COMPLAINT */}
+
                         <button
-                            type="button"
                             className="secondary-btn"
-                            onClick={() => setShowQueue(true)}
+                            onClick={() => {
+
+                                if (user) {
+
+                                    setShowTrackComplaint(true);
+
+                                } else {
+
+                                    setShowCitizenLogin(true);
+
+                                }
+
+                            }}
                         >
                             Track Complaint
                         </button>
 
                     </div>
+
 
                     <div className="trust-text">
                         Simple · Fast · Transparent
@@ -145,7 +259,9 @@ function App() {
                 </div>
 
 
-                {/* COMPLAINT CARD */}
+                {/* =========================
+                   SAMPLE COMPLAINT CARD
+                ========================= */}
 
                 <div className="queue-card">
 
@@ -158,118 +274,83 @@ function App() {
                             </p>
 
                             <h2>
-                                {complaint
-                                    ? complaint.issueType
-                                    : "Track your complaint"}
+                                Streetlight Not Working
                             </h2>
 
                         </div>
 
-                        {complaint && (
-                            <span className="live-badge">
-                                ● {complaint.status.toUpperCase()}
-                            </span>
-                        )}
+                        <span className="live-badge">
+                            ● ACTIVE
+                        </span>
 
                     </div>
 
 
-                    {/* COMPLAINT ID */}
+                    <div className="queue-number">
 
-                    {complaint && (
+                        <span>
+                            Complaint ID
+                        </span>
 
-                        <div className="queue-number">
+                        <strong>
+                            #CF1024
+                        </strong>
+
+                    </div>
+
+
+                    <div className="progress-container">
+
+                        <div className="progress-bar"></div>
+
+                    </div>
+
+
+                    <div className="queue-info">
+
+                        <div>
 
                             <span>
-                                Complaint ID
+                                Status
                             </span>
 
                             <strong>
-                                #{complaint.complaintId}
+                                In Progress
                             </strong>
 
                         </div>
 
-                    )}
 
+                        <div>
 
-                    {/* PROGRESS TIMELINE */}
+                            <span>
+                                Reported
+                            </span>
 
-                    {complaint && (
-
-                        <div className="status-timeline">
-
-                            {statuses.map((status, index) => {
-
-                                const currentIndex =
-                                    getStatusIndex(complaint.status);
-
-                                const completed =
-                                    index <= currentIndex;
-
-                                return (
-                                    <div
-                                        className="status-step"
-                                        key={status}
-                                    >
-
-                                        <div
-                                            className={`status-circle ${
-                                                completed
-                                                    ? "completed"
-                                                    : ""
-                                            }`}
-                                        >
-                                            {completed ? "✓" : ""}
-                                        </div>
-
-                                        <span
-                                            className={
-                                                completed
-                                                    ? "status-label completed-label"
-                                                    : "status-label"
-                                            }
-                                        >
-                                            {status}
-                                        </span>
-
-                                        {index < statuses.length - 1 && (
-                                            <div
-                                                className={`status-line ${
-                                                    index < currentIndex
-                                                        ? "completed-line"
-                                                        : ""
-                                                }`}
-                                            />
-                                        )}
-
-                                    </div>
-                                );
-                            })}
+                            <strong>
+                                Today
+                            </strong>
 
                         </div>
 
-                    )}
+                    </div>
 
-
-                    {/* DEFAULT CARD */}
-
-                    {!complaint && (
-
-                        <p className="track-description">
-                            Enter your complaint ID to see the
-                            current progress of your complaint.
-                        </p>
-
-                    )}
-
-
-                    {/* TRACK BUTTON */}
 
                     <button
-                        type="button"
                         className="track-btn"
-                        onClick={() => setShowQueue(true)}
+                        onClick={() => {
+
+                            if (user) {
+
+                                setShowTrackComplaint(true);
+
+                            } else {
+
+                                setShowCitizenLogin(true);
+
+                            }
+
+                        }}
                     >
                         Track Complaint
                     </button>
@@ -279,7 +360,9 @@ function App() {
             </main>
 
 
-            {/* FEATURES */}
+            {/* =========================
+               FEATURES
+            ========================= */}
 
             <section className="features">
 
@@ -342,24 +425,132 @@ function App() {
             </section>
 
 
-            {/* REPORT ISSUE MODAL */}
+            {/* =========================
+               CITIZEN LOGIN MODAL
+            ========================= */}
+
+            {showCitizenLogin && (
+
+                <div className="report-overlay">
+
+                    <div className="report-modal">
+
+                        <button
+                            className="close-btn"
+                            onClick={() =>
+                                setShowCitizenLogin(false)
+                            }
+                        >
+                            ×
+                        </button>
+
+                        <CitizenLogin
+                            onLogin={handleCitizenLogin}
+
+                            onRegister={() => {
+
+                                setShowCitizenLogin(false);
+                                setShowRegister(true);
+
+                            }}
+                        />
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* =========================
+               CITIZEN REGISTER MODAL
+            ========================= */}
+
+            {showRegister && (
+
+                <div className="report-overlay">
+
+                    <div className="report-modal">
+
+                        <button
+                            className="close-btn"
+                            onClick={() =>
+                                setShowRegister(false)
+                            }
+                        >
+                            ×
+                        </button>
+
+                        <Register
+
+                            onRegister={() => {
+
+                                setShowRegister(false);
+                                setShowCitizenLogin(true);
+
+                            }}
+
+                            onLogin={() => {
+
+                                setShowRegister(false);
+                                setShowCitizenLogin(true);
+
+                            }}
+
+                        />
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* =========================
+               ADMIN LOGIN MODAL
+            ========================= */}
+
+            {showAdminLogin && (
+
+                <div className="report-overlay">
+
+                    <div className="report-modal">
+
+                        <button
+                            className="close-btn"
+                            onClick={() =>
+                                setShowAdminLogin(false)
+                            }
+                        >
+                            ×
+                        </button>
+
+                        <AdminLogin
+                            onLogin={handleAdminLogin}
+                        />
+
+                    </div>
+
+                </div>
+
+            )}
+
+
+            {/* =========================
+               REPORT ISSUE MODAL
+            ========================= */}
 
             {showReportForm && (
 
-                <div
-                    className="report-overlay"
-                    onClick={() => setShowReportForm(false)}
-                >
+                <div className="report-overlay">
 
-                    <div
-                        className="report-modal"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="report-modal">
 
                         <button
-                            type="button"
                             className="close-btn"
-                            onClick={() => setShowReportForm(false)}
+                            onClick={() =>
+                                setShowReportForm(false)
+                            }
                         >
                             ×
                         </button>
@@ -373,24 +564,21 @@ function App() {
             )}
 
 
-            {/* TRACK COMPLAINT MODAL */}
+            {/* =========================
+               TRACK COMPLAINT MODAL
+            ========================= */}
 
-            {showQueue && (
+            {showTrackComplaint && (
 
-                <div
-                    className="report-overlay"
-                    onClick={() => setShowQueue(false)}
-                >
+                <div className="report-overlay">
 
-                    <div
-                        className="track-modal"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="track-modal">
 
                         <button
-                            type="button"
                             className="close-btn"
-                            onClick={() => setShowQueue(false)}
+                            onClick={() =>
+                                setShowTrackComplaint(false)
+                            }
                         >
                             ×
                         </button>
@@ -400,140 +588,10 @@ function App() {
                         </h2>
 
                         <p className="modal-description">
-                            Enter your complaint ID to check
-                            the current status.
+                            Enter your Complaint ID to check the latest status.
                         </p>
 
-                        <div className="track-input-container">
-
-                            <input
-                                type="text"
-                                placeholder="Example: CF8708"
-                                value={complaintId}
-                                onChange={(e) =>
-                                    setComplaintId(
-                                        e.target.value.toUpperCase()
-                                    )
-                                }
-                            />
-
-                            <button
-                                type="button"
-                                className="primary-btn"
-                                onClick={handleTrackComplaint}
-                            >
-                                {loading
-                                    ? "Checking..."
-                                    : "Track"}
-                            </button>
-
-                        </div>
-
-                        {trackError && (
-                            <p className="form-error">
-                                {trackError}
-                            </p>
-                        )}
-
-                        {complaint && (
-
-                            <div className="track-result">
-
-                                <div className="track-result-header">
-
-                                    <div>
-
-                                        <p className="small-label">
-                                            COMPLAINT
-                                        </p>
-
-                                        <h3>
-                                            {complaint.issueType}
-                                        </h3>
-
-                                    </div>
-
-                                    <strong>
-                                        #{complaint.complaintId}
-                                    </strong>
-
-                                </div>
-
-
-                                <p className="complaint-description">
-                                    {complaint.description}
-                                </p>
-
-
-                                <p className="complaint-location">
-                                    📍 {complaint.location}
-                                </p>
-
-
-                                {/* TIMELINE */}
-
-                                <div className="status-timeline">
-
-                                    {statuses.map((status, index) => {
-
-                                        const currentIndex =
-                                            getStatusIndex(
-                                                complaint.status
-                                            );
-
-                                        const completed =
-                                            index <= currentIndex;
-
-                                        return (
-                                            <div
-                                                className="status-step"
-                                                key={status}
-                                            >
-
-                                                <div
-                                                    className={`status-circle ${
-                                                        completed
-                                                            ? "completed"
-                                                            : ""
-                                                    }`}
-                                                >
-                                                    {completed
-                                                        ? "✓"
-                                                        : ""}
-                                                </div>
-
-                                                <span
-                                                    className={
-                                                        completed
-                                                            ? "status-label completed-label"
-                                                            : "status-label"
-                                                    }
-                                                >
-                                                    {status}
-                                                </span>
-
-                                                {index <
-                                                    statuses.length - 1 && (
-                                                    <div
-                                                        className={`status-line ${
-                                                            index <
-                                                            currentIndex
-                                                                ? "completed-line"
-                                                                : ""
-                                                        }`}
-                                                    />
-                                                )}
-
-                                            </div>
-                                        );
-
-                                    })}
-
-                                </div>
-
-                            </div>
-
-                        )}
+                        <TrackComplaint />
 
                     </div>
 

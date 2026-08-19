@@ -22,18 +22,21 @@ function ReportIssue() {
         setLoading(true);
 
         try {
+            const formData = new FormData();
+
+            formData.append("issueType", issueType);
+            formData.append("description", description);
+            formData.append("location", location);
+
+            if (photo) {
+                formData.append("photo", photo);
+            }
+
             const response = await fetch(
                 "http://localhost:5000/api/complaints",
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        issueType,
-                        description,
-                        location
-                    })
+                    body: formData
                 }
             );
 
@@ -49,7 +52,10 @@ function ReportIssue() {
             setSubmitted(true);
 
         } catch (error) {
-            console.error("Complaint submission error:", error);
+            console.error(
+                "Complaint submission error:",
+                error
+            );
 
             setError(
                 "Unable to submit complaint. Please try again."
@@ -68,16 +74,65 @@ function ReportIssue() {
             return;
         }
 
+        setError("");
+
         navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const latitude =
-                    position.coords.latitude.toFixed(6);
+            async (position) => {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
 
-                const longitude =
-                    position.coords.longitude.toFixed(6);
+                try {
+                    const response = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+                    );
 
-                setLocation(`${latitude}, ${longitude}`);
-                setError("");
+                    if (!response.ok) {
+                        throw new Error(
+                            "Unable to find address."
+                        );
+                    }
+
+                    const data = await response.json();
+                    const address = data.address;
+
+                    const readableLocation = [
+                        address?.road,
+
+                        address?.suburb ||
+                        address?.neighbourhood ||
+                        address?.quarter ||
+                        address?.village,
+
+                        address?.city ||
+                        address?.town ||
+                        address?.municipality,
+
+                        address?.state,
+
+                        address?.postcode
+                    ]
+                        .filter(Boolean)
+                        .join(", ");
+
+                    if (!readableLocation) {
+                        setError(
+                            "Could not find a readable address."
+                        );
+                        return;
+                    }
+
+                    setLocation(readableLocation);
+
+                } catch (error) {
+                    console.error(
+                        "Location conversion error:",
+                        error
+                    );
+
+                    setError(
+                        "Unable to convert your location into an address."
+                    );
+                }
             },
 
             () => {
@@ -93,7 +148,6 @@ function ReportIssue() {
 
             <h2>Report a Civic Issue</h2>
 
-            {/* Issue Type */}
             <label>Issue Type</label>
 
             <select
@@ -132,7 +186,6 @@ function ReportIssue() {
                 </option>
             </select>
 
-            {/* Description */}
             <label>Description</label>
 
             <textarea
@@ -144,7 +197,6 @@ function ReportIssue() {
                 }}
             />
 
-            {/* Location */}
             <label>Location</label>
 
             <div className="location-input">
@@ -170,7 +222,6 @@ function ReportIssue() {
 
             </div>
 
-            {/* Photo */}
             <label>Photo</label>
 
             <input
@@ -182,14 +233,12 @@ function ReportIssue() {
                 }}
             />
 
-            {/* Error */}
             {error && (
                 <p className="form-error">
                     {error}
                 </p>
             )}
 
-            {/* Submit */}
             <button
                 type="button"
                 className="primary-btn"
@@ -201,7 +250,6 @@ function ReportIssue() {
                     : "Submit Complaint"}
             </button>
 
-            {/* Success */}
             {submitted && (
                 <div className="success-message">
 
