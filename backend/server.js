@@ -6,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 
 const connectDB = require("./src/config/db");
-const Complaint = require("./src/models/Complaint");
+const Complaint = require("./src/models/complaint");
 const authRoutes = require("./src/routes/authRoutes");
 const authMiddleware = require("./src/middleware/authMiddleware");
 const adminMiddleware = require("./src/middleware/adminMiddleware");
