@@ -38,6 +38,16 @@ const complaintSchema = new mongoose.Schema(
                 "Resolved"
             ],
             default: "Submitted"
+        },
+
+        escalated: {
+            type: Boolean,
+            default: false
+        },
+
+        escalatedAt: {
+            type: Date,
+            default: null
         }
     },
     {

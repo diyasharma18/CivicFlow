@@ -206,7 +206,54 @@ app.get("/api/complaints/:complaintId", async (req, res) => {
             message: "Failed to fetch complaint."
         });
     }
+
+
 });
+
+    /* ESCALATE COMPLAINT */
+
+app.patch(
+    "/api/complaints/:complaintId/escalate",
+    authMiddleware,
+    adminMiddleware,
+    async (req, res) => {
+        try {
+            const complaint = await Complaint.findOneAndUpdate(
+                {
+                    complaintId: req.params.complaintId
+                },
+                {
+                    escalated: true,
+                    escalatedAt: new Date()
+                },
+                {
+                    new: true
+                }
+            );
+
+            if (!complaint) {
+                return res.status(404).json({
+                    message: "Complaint not found."
+                });
+            }
+
+            res.json({
+                message: "Complaint escalated successfully!",
+                complaint: complaint
+            });
+
+        } catch (error) {
+            console.error(
+                "Complaint escalation failed:",
+                error.message
+            );
+
+            res.status(500).json({
+                message: "Failed to escalate complaint."
+            });
+        }
+    }
+);
 
 /* DATABASE */
 

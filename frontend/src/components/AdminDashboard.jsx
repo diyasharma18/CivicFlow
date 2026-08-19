@@ -33,42 +33,47 @@ function AdminDashboard() {
     }, []);
 
     const handleStatusChange = async (complaintId, newStatus) => {
-    try {
-        const token = localStorage.getItem("token");
+        try {
+            const token = localStorage.getItem("token");
 
-const response = await fetch(
-    `http://localhost:5000/api/complaints/${complaintId}/status`,
-    {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-            status: newStatus,
-        }),
-    }
-);
+            const response = await fetch(
+                `http://localhost:5000/api/complaints/${complaintId}/status`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                    }),
+                }
+            );
 
-        const data = await response.json();
+            const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to update status");
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Failed to update status"
+                );
+            }
+
+            setComplaints((prevComplaints) =>
+                prevComplaints.map((complaint) =>
+                    complaint.complaintId === complaintId
+                        ? {
+                              ...complaint,
+                              status: newStatus,
+                          }
+                        : complaint
+                )
+            );
+
+        } catch (error) {
+            console.error("Status update error:", error);
+            alert("Failed to update complaint status");
         }
-
-        // Update the complaint in the UI
-        setComplaints((prevComplaints) =>
-            prevComplaints.map((complaint) =>
-                complaint.complaintId === complaintId
-                    ? { ...complaint, status: newStatus }
-                    : complaint
-            )
-        );
-    } catch (error) {
-        console.error("Status update error:", error);
-        alert("Failed to update complaint status");
-    }
-};
+    };
 
     if (loading) {
         return <p>Loading complaints...</p>;
@@ -78,8 +83,6 @@ const response = await fetch(
         return <p>{error}</p>;
     }
 
-    
-    
     return (
         <div className="admin-dashboard">
 
@@ -165,22 +168,37 @@ const response = await fetch(
 
                                 </div>
 
-                               <select
-    className="admin-status-select"
-    value={complaint.status}
-    onChange={(e) =>
-        handleStatusChange(
-            complaint.complaintId,
-            e.target.value
-        )
-    }
->
-    <option value="Submitted">Submitted</option>
-    <option value="Verified">Verified</option>
-    <option value="Checking">Checking</option>
-    <option value="Working">Working</option>
-    <option value="Resolved">Resolved</option>
-</select>
+                                <select
+                                    className="admin-status-select"
+                                    value={complaint.status}
+                                    onChange={(e) =>
+                                        handleStatusChange(
+                                            complaint.complaintId,
+                                            e.target.value
+                                        )
+                                    }
+                                >
+                                    <option value="Submitted">
+                                        Submitted
+                                    </option>
+
+                                    <option value="Verified">
+                                        Verified
+                                    </option>
+
+                                    <option value="Checking">
+                                        Checking
+                                    </option>
+
+                                    <option value="Working">
+                                        Working
+                                    </option>
+
+                                    <option value="Resolved">
+                                        Resolved
+                                    </option>
+                                </select>
+
                             </div>
 
                             <p>
@@ -199,22 +217,23 @@ const response = await fetch(
                             </p>
 
                             {complaint.photo && (
-    <div className="admin-complaint-photo">
-        <strong>Photo:</strong>
+                                <div className="admin-complaint-photo">
 
-        <a
-    href={`http://localhost:5000${complaint.photo}`}
-    target="_blank"
-    rel="noopener noreferrer"
->
-    <img
-        src={`http://localhost:5000${complaint.photo}`}
-        alt={`Complaint ${complaint.complaintId}`}
-    />
-</a>
+                                    <strong>Photo:</strong>
 
-    </div>
-)}
+                                    <a
+                                        href={`http://localhost:5000${complaint.photo}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <img
+                                            src={`http://localhost:5000${complaint.photo}`}
+                                            alt={`Complaint ${complaint.complaintId}`}
+                                        />
+                                    </a>
+
+                                </div>
+                            )}
 
                         </div>
 
