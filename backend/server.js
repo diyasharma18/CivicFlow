@@ -13,6 +13,8 @@ const adminMiddleware = require("./src/middleware/adminMiddleware");
 
 const app = express();
 
+/* FILE UPLOAD */
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "uploads/");
@@ -33,10 +35,11 @@ const upload = multer({
     storage: storage
 });
 
-const PORT = 5000;
+/* MIDDLEWARE */
 
 app.use(cors());
 app.use(express.json());
+
 app.use("/api/auth", authRoutes);
 app.use("/uploads", express.static("uploads"));
 
@@ -77,14 +80,14 @@ app.post("/api/complaints", upload.single("photo"), async (req, res) => {
             "CF" + Math.floor(1000 + Math.random() * 9000);
 
         const complaint = await Complaint.create({
-    complaintId,
-    issueType,
-    description,
-    location,
-    photo: req.file
-        ? `/uploads/${req.file.filename}`
-        : ""
-});
+            complaintId,
+            issueType,
+            description,
+            location,
+            photo: req.file
+                ? `/uploads/${req.file.filename}`
+                : ""
+        });
 
         res.status(201).json({
             message: "Complaint submitted successfully!",
@@ -126,59 +129,63 @@ app.get("/api/complaints", async (req, res) => {
 
 /* UPDATE COMPLAINT STATUS */
 
-app.patch("/api/complaints/:complaintId/status",authMiddleware,
-    adminMiddleware, async (req, res) => {
-    try {
-        const { status } = req.body;
+app.patch(
+    "/api/complaints/:complaintId/status",
+    authMiddleware,
+    adminMiddleware,
+    async (req, res) => {
+        try {
+            const { status } = req.body;
 
-        const allowedStatuses = [
-            "Submitted",
-            "Verified",
-            "Checking",
-            "Working",
-            "Resolved"
-        ];
+            const allowedStatuses = [
+                "Submitted",
+                "Verified",
+                "Checking",
+                "Working",
+                "Resolved"
+            ];
 
-        if (!allowedStatuses.includes(status)) {
-            return res.status(400).json({
-                message: "Invalid complaint status."
-            });
-        }
-
-        const complaint = await Complaint.findOneAndUpdate(
-            {
-                complaintId: req.params.complaintId
-            },
-            {
-                status: status
-            },
-            {
-                new: true
+            if (!allowedStatuses.includes(status)) {
+                return res.status(400).json({
+                    message: "Invalid complaint status."
+                });
             }
-        );
 
-        if (!complaint) {
-            return res.status(404).json({
-                message: "Complaint not found."
+            const complaint = await Complaint.findOneAndUpdate(
+                {
+                    complaintId: req.params.complaintId
+                },
+                {
+                    status: status
+                },
+                {
+                    new: true
+                }
+            );
+
+            if (!complaint) {
+                return res.status(404).json({
+                    message: "Complaint not found."
+                });
+            }
+
+            res.json({
+                message: "Complaint status updated successfully!",
+                complaint: complaint
+            });
+
+        } catch (error) {
+            console.error(
+                "Status update failed:",
+                error.message
+            );
+
+            res.status(500).json({
+                message: "Failed to update complaint status."
             });
         }
-
-        res.json({
-            message: "Complaint status updated successfully!",
-            complaint: complaint
-        });
-
-    } catch (error) {
-        console.error(
-            "Status update failed:",
-            error.message
-        );
-
-        res.status(500).json({
-            message: "Failed to update complaint status."
-        });
     }
-});
+);
 
 /* GET SINGLE COMPLAINT */
 
@@ -206,11 +213,9 @@ app.get("/api/complaints/:complaintId", async (req, res) => {
             message: "Failed to fetch complaint."
         });
     }
-
-
 });
 
-    /* ESCALATE COMPLAINT */
+/* ESCALATE COMPLAINT */
 
 app.patch(
     "/api/complaints/:complaintId/escalate",
@@ -261,9 +266,10 @@ connectDB();
 
 /* SERVER */
 
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
     console.log(
-        `CivicFlow backend running on http://localhost:${PORT}`
+        `CivicFlow backend running on port ${PORT}`
     );
 });
-
