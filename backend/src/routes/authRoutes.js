@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-
 const router = express.Router();
 
 /* TEST */
@@ -14,7 +13,7 @@ router.get("/", (req, res) => {
     });
 });
 
-/* REGISTER */
+/* CITIZEN REGISTER */
 
 router.post("/register", async (req, res) => {
     try {
@@ -58,6 +57,54 @@ router.post("/register", async (req, res) => {
 
         res.status(500).json({
             message: "Registration failed.",
+        });
+    }
+});
+
+/* ADMIN REGISTER */
+
+router.post("/admin-register", async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "Name, email and password are required.",
+            });
+        }
+
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User with this email already exists.",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const admin = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "admin",
+        });
+
+        res.status(201).json({
+            message: "Admin registered successfully.",
+            user: {
+                id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role,
+            },
+        });
+
+    } catch (error) {
+        console.error("Admin registration error:", error);
+
+        res.status(500).json({
+            message: "Admin registration failed.",
         });
     }
 });
@@ -125,6 +172,8 @@ router.post("/login", async (req, res) => {
 });
 
 const authMiddleware = require("../middleware/authMiddleware");
+
+/* PROTECTED ROUTE */
 
 router.get("/protected", authMiddleware, (req, res) => {
     res.json({
