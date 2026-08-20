@@ -1,130 +1,189 @@
-import { useState } from "react";
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-function AdminLogin({ onLogin }) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+const router = express.Router();
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+/* TEST */
+
+router.get("/", (req, res) => {
+    res.json({
+        message: "Auth route is working"
+    });
+});
+
+/* CITIZEN REGISTER */
+
+router.post("/register", async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "Name, email and password are required."
+            });
+        }
+
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User with this email already exists."
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "citizen"
+        });
+
+        res.status(201).json({
+            message: "Citizen registered successfully.",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error("Registration error:", error);
+
+        res.status(500).json({
+            message: "Registration failed."
+        });
+    }
+});
+
+/* ADMIN REGISTER */
+
+router.post("/admin-register", async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "Name, email and password are required."
+            });
+        }
+
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User with this email already exists."
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword,
+            role: "admin"
+        });
+
+        res.status(201).json({
+            message: "Admin registered successfully.",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error("Admin registration error:", error);
+
+        res.status(500).json({
+            message: "Admin registration failed."
+        });
+    }
+});
+
+/* LOGIN */
+
+router.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
         if (!email || !password) {
-            setError("Please enter email and password.");
-            return;
+            return res.status(400).json({
+                message: "Email and password are required."
+            });
         }
 
-        setError("");
-        setLoading(true);
+        const user = await User.findOne({ email });
 
-        try {
-            const response = await fetch(
-                "https://civicflow-production-8596.up.railway.app/api/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || "Login failed."
-                );
-            }
-
-            if (data.user.role !== "admin") {
-                throw new Error(
-                    "Only administrators can access this dashboard."
-                );
-            }
-
-            localStorage.setItem("token", data.token);
-
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
-
-            onLogin(data.user);
-
-        } catch (error) {
-            console.error("Admin login error:", error);
-
-            setError(
-                error.message || "Unable to login."
-            );
-
-        } finally {
-            setLoading(false);
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid email or password."
+            });
         }
-    };
 
-    return (
-        <div className="report-overlay">
+        const isPasswordCorrect = await bcrypt.compare(
+            password,
+            user.password
+        );
 
-            <form
-                className="admin-login-form"
-                onSubmit={handleLogin}
-            >
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                message: "Invalid email or password."
+            });
+        }
 
-                <h2>Admin Login</h2>
+        const token = jwt.sign(
+            {
+                userId: user._id,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "1d"
+            }
+        );
 
-                <p className="admin-login-subtitle">
-                    Login to access the CivicFlow admin dashboard.
-                </p>
+        res.json({
+            message: "Login successful.",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
 
-                <label>Email</label>
+    } catch (error) {
+        console.error("Login error:", error);
 
-                <input
-                    type="email"
-                    placeholder="admin email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError("");
-                    }}
-                />
+        res.status(500).json({
+            message: "Login failed."
+        });
+    }
+});
 
-                <label>Password</label>
+/* PROTECTED TEST */
 
-                <input
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError("");
-                    }}
-                />
+const authMiddleware = require("../middleware/authMiddleware");
 
-                {error && (
-                    <p className="admin-login-error">
-                        {error}
-                    </p>
-                )}
+router.get(
+    "/protected",
+    authMiddleware,
+    (req, res) => {
+        res.json({
+            message: "You are authenticated!",
+            user: req.user
+        });
+    }
+);
 
-                <button
-                    type="submit"
-                    className="primary-btn"
-                    disabled={loading}
-                >
-                    {loading
-                        ? "Logging in..."
-                        : "Login"}
-                </button>
-
-            </form>
-
-        </div>
-    );
-}
-
-export default AdminLogin;
+module.exports = router;
