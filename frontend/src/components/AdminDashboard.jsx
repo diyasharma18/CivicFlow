@@ -9,7 +9,7 @@ function AdminDashboard() {
         const fetchComplaints = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/api/complaints"
+                    "https://civicflow-production-8596.up.railway.app/api/complaints"
                 );
 
                 const data = await response.json();
@@ -37,7 +37,7 @@ function AdminDashboard() {
             const token = localStorage.getItem("token");
 
             const response = await fetch(
-                `http://localhost:5000/api/complaints/${complaintId}/status`,
+                `https://civicflow-production-8596.up.railway.app/api/complaints/${complaintId}/status`,
                 {
                     method: "PATCH",
                     headers: {
@@ -222,12 +222,12 @@ function AdminDashboard() {
                                     <strong>Photo:</strong>
 
                                     <a
-                                        href={`http://localhost:5000${complaint.photo}`}
+                                        href={`https://civicflow-production-8596.up.railway.app${complaint.photo}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                     >
                                         <img
-                                            src={`http://localhost:5000${complaint.photo}`}
+                                            src={`https://civicflow-production-8596.up.railway.app${complaint.photo}`}
                                             alt={`Complaint ${complaint.complaintId}`}
                                         />
                                     </a>

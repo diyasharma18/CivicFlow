@@ -23,7 +23,7 @@ function TrackComplaint() {
             const cleanId = complaintId.trim().toUpperCase();
 
             const response = await fetch(
-                `http://localhost:5000/api/complaints/${cleanId}`
+                `https://civicflow-production-8596.up.railway.app/api/complaints/${cleanId}`
             );
 
             const data = await response.json();

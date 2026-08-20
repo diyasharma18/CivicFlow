@@ -33,7 +33,7 @@ function ReportIssue() {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/complaints",
+                "https://civicflow-production-8596.up.railway.app/api/complaints",
                 {
                     method: "POST",
                     body: formData
