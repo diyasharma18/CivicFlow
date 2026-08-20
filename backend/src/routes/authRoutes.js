@@ -1,130 +1,127 @@
-import { useState } from "react";
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-function AdminLogin({ onLogin }) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
+import User from "../models/User.js";
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+const router = express.Router();
+
+/* REGISTER */
+
+router.post("/register", async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                message: "Please fill in all required fields."
+            });
+        }
+
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(409).json({
+                message: "An account with this email already exists."
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
+            name,
+            email,
+            password: hashedPassword
+        });
+
+        const token = jwt.sign(
+            {
+                id: user._id,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        );
+
+        res.status(201).json({
+            message: "Account created successfully!",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error("Registration failed:", error.message);
+
+        res.status(500).json({
+            message: "Failed to register."
+        });
+    }
+});
+
+/* LOGIN */
+
+router.post("/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
         if (!email || !password) {
-            setError("Please enter email and password.");
-            return;
+            return res.status(400).json({
+                message: "Please enter email and password."
+            });
         }
 
-        setError("");
-        setLoading(true);
+        const user = await User.findOne({ email });
 
-        try {
-            const response = await fetch(
-                "https://civicflow-production-8596.up.railway.app/api/auth/login",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                    }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || "Login failed."
-                );
-            }
-
-            if (data.user.role !== "admin") {
-                throw new Error(
-                    "Only administrators can access this dashboard."
-                );
-            }
-
-            localStorage.setItem("token", data.token);
-
-            localStorage.setItem(
-                "user",
-                JSON.stringify(data.user)
-            );
-
-            onLogin(data.user);
-
-        } catch (error) {
-            console.error("Admin login error:", error);
-
-            setError(
-                error.message || "Unable to login."
-            );
-
-        } finally {
-            setLoading(false);
+        if (!user) {
+            return res.status(401).json({
+                message: "Invalid email or password."
+            });
         }
-    };
 
-    return (
-        <div className="report-overlay">
+        const isMatch = await bcrypt.compare(password, user.password);
 
-            <form
-                className="admin-login-form"
-                onSubmit={handleLogin}
-            >
+        if (!isMatch) {
+            return res.status(401).json({
+                message: "Invalid email or password."
+            });
+        }
 
-                <h2>Admin Login</h2>
+        const token = jwt.sign(
+            {
+                id: user._id,
+                role: user.role
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "7d"
+            }
+        );
 
-                <p className="admin-login-subtitle">
-                    Login to access the CivicFlow admin dashboard.
-                </p>
+        res.json({
+            message: "Login successful!",
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
 
-                <label>Email</label>
+    } catch (error) {
+        console.error("Login failed:", error.message);
 
-                <input
-                    type="email"
-                    placeholder="admin email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value);
-                        setError("");
-                    }}
-                />
+        res.status(500).json({
+            message: "Failed to login."
+        });
+    }
+});
 
-                <label>Password</label>
-
-                <input
-                    type="password"
-                    placeholder="Enter password"
-                    value={password}
-                    onChange={(e) => {
-                        setPassword(e.target.value);
-                        setError("");
-                    }}
-                />
-
-                {error && (
-                    <p className="admin-login-error">
-                        {error}
-                    </p>
-                )}
-
-                <button
-                    type="submit"
-                    className="primary-btn"
-                    disabled={loading}
-                >
-                    {loading
-                        ? "Logging in..."
-                        : "Login"}
-                </button>
-
-            </form>
-
-        </div>
-    );
-}
-
-export default AdminLogin;
+export default router;

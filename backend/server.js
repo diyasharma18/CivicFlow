@@ -1,16 +1,20 @@
-require("dotenv").config();
+import "dotenv/config";
 
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
-const connectDB = require("./src/config/db");
-const Complaint = require("./src/models/Complaint");
-const authRoutes = require("./src/routes/authRoutes");
-const authMiddleware = require("./src/middleware/authMiddleware");
-const adminMiddleware = require("./src/middleware/adminMiddleware");
+import connectDB from "./src/config/db.js";
+import Complaint from "./src/models/Complaint.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import authMiddleware from "./src/middleware/authMiddleware.js";
+import adminMiddleware from "./src/middleware/adminMiddleware.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
