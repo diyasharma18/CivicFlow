@@ -47,9 +47,7 @@ const upload = multer({
 /* CORS */
 
 const corsOptions = {
-    origin: [
-        "https://civic-flow-seven.vercel.app"
-    ],
+    origin: "https://civic-flow-seven.vercel.app",
     methods: [
         "GET",
         "POST",
@@ -66,8 +64,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
-app.options("*", cors(corsOptions));
 
 /* GENERAL MIDDLEWARE */
 
@@ -113,33 +109,27 @@ app.post(
 
             if (!issueType || !description || !location) {
                 return res.status(400).json({
-                    message:
-                        "Please fill in all required fields."
+                    message: "Please fill in all required fields."
                 });
             }
 
             const complaintId =
                 "CF" +
-                Math.floor(
-                    1000 + Math.random() * 9000
-                );
+                Math.floor(1000 + Math.random() * 9000);
 
-            const complaint =
-                await Complaint.create({
-                    complaintId,
-                    issueType,
-                    description,
-                    location,
-                    photo: req.file
-                        ? `/uploads/${req.file.filename}`
-                        : ""
-                });
+            const complaint = await Complaint.create({
+                complaintId,
+                issueType,
+                description,
+                location,
+                photo: req.file
+                    ? `/uploads/${req.file.filename}`
+                    : ""
+            });
 
             res.status(201).json({
-                message:
-                    "Complaint submitted successfully!",
-                complaintId:
-                    complaint.complaintId
+                message: "Complaint submitted successfully!",
+                complaintId: complaint.complaintId
             });
 
         } catch (error) {
@@ -149,8 +139,7 @@ app.post(
             );
 
             res.status(500).json({
-                message:
-                    "Failed to submit complaint."
+                message: "Failed to submit complaint."
             });
         }
     }
@@ -162,11 +151,10 @@ app.get(
     "/api/complaints",
     async (req, res) => {
         try {
-            const complaints =
-                await Complaint.find()
-                    .sort({
-                        createdAt: -1
-                    });
+            const complaints = await Complaint.find()
+                .sort({
+                    createdAt: -1
+                });
 
             res.json(complaints);
 
@@ -177,8 +165,7 @@ app.get(
             );
 
             res.status(500).json({
-                message:
-                    "Failed to fetch complaints."
+                message: "Failed to fetch complaints."
             });
         }
     }
@@ -204,16 +191,14 @@ app.patch(
 
             if (!allowedStatuses.includes(status)) {
                 return res.status(400).json({
-                    message:
-                        "Invalid complaint status."
+                    message: "Invalid complaint status."
                 });
             }
 
             const complaint =
                 await Complaint.findOneAndUpdate(
                     {
-                        complaintId:
-                            req.params.complaintId
+                        complaintId: req.params.complaintId
                     },
                     {
                         status: status
@@ -225,8 +210,7 @@ app.patch(
 
             if (!complaint) {
                 return res.status(404).json({
-                    message:
-                        "Complaint not found."
+                    message: "Complaint not found."
                 });
             }
 
@@ -243,8 +227,7 @@ app.patch(
             );
 
             res.status(500).json({
-                message:
-                    "Failed to update complaint status."
+                message: "Failed to update complaint status."
             });
         }
     }
@@ -256,16 +239,13 @@ app.get(
     "/api/complaints/:complaintId",
     async (req, res) => {
         try {
-            const complaint =
-                await Complaint.findOne({
-                    complaintId:
-                        req.params.complaintId
-                });
+            const complaint = await Complaint.findOne({
+                complaintId: req.params.complaintId
+            });
 
             if (!complaint) {
                 return res.status(404).json({
-                    message:
-                        "Complaint not found."
+                    message: "Complaint not found."
                 });
             }
 
@@ -278,8 +258,7 @@ app.get(
             );
 
             res.status(500).json({
-                message:
-                    "Failed to fetch complaint."
+                message: "Failed to fetch complaint."
             });
         }
     }
@@ -296,8 +275,7 @@ app.patch(
             const complaint =
                 await Complaint.findOneAndUpdate(
                     {
-                        complaintId:
-                            req.params.complaintId
+                        complaintId: req.params.complaintId
                     },
                     {
                         escalated: true,
@@ -310,14 +288,12 @@ app.patch(
 
             if (!complaint) {
                 return res.status(404).json({
-                    message:
-                        "Complaint not found."
+                    message: "Complaint not found."
                 });
             }
 
             res.json({
-                message:
-                    "Complaint escalated successfully!",
+                message: "Complaint escalated successfully!",
                 complaint: complaint
             });
 
@@ -328,8 +304,7 @@ app.patch(
             );
 
             res.status(500).json({
-                message:
-                    "Failed to escalate complaint."
+                message: "Failed to escalate complaint."
             });
         }
     }
@@ -341,8 +316,7 @@ connectDB();
 
 /* SERVER */
 
-const PORT =
-    process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log(
