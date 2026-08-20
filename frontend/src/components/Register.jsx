@@ -20,7 +20,7 @@ function Register({ onRegister, onLogin }) {
 
         try {
             const response = await fetch(
-                "http://localhost:5000/api/auth/register",
+                "https://civicflow-production-8596.up.railway.app/api/auth/register",
                 {
                     method: "POST",
                     headers: {
